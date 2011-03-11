@@ -1,0 +1,817 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>gET iT i sAY .giis - ext3 File Undelete Tool </title>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<META HTTP-EQUIV="EXPIRES" CONTENT="0">
+<META NAME="RESOURCE-TYPE" CONTENT="DOCUMENT">
+<META NAME="DISTRIBUTION" CONTENT="GLOBAL">
+<META NAME="AUTHOR" CONTENT="Lakshmipathi.G">
+<META NAME="COPYRIGHT" CONTENT="Copyright (c) by Lakshmipathi.G">
+<META NAME="KEYWORDS" CONTENT="Linux File Undelete, ext3 File System, ext2 File System, File Recovery">
+<META NAME="DESCRIPTION" CONTENT="Free File Undelete Tool or Recovery Tool for Linux ext3FS">
+<META NAME="ROBOTS" CONTENT="INDEX, FOLLOW">
+<META NAME="REVISIT-AFTER" CONTENT="1 DAYS">
+<META NAME="RATING" CONTENT="GENERAL">
+<META NAME="GENERATOR" CONTENT="Gedit">
+</head>
+<body bgcolor="#EBEBEB">
+<font size=2>
+<center><u><h3>Enhanced giis -Implementation and overview</h3> </u> </center>
+<br><center><h3>gET iT i sAY - giis</h3></u></center></font>
+<h3>
+<pre>
+							    By
+							    G.Lakshmipathi. 
+							    &lt;lakshmipathi_g@rediffmail.com&gt;
+							    2nd october 2005.
+</pre>			
+<p>
+Read this Enhanced giis-Implementation and overview part only after giis_overview_implementation.Since here we deal with only changes made to its previous version.
+Near 60% of giis remains as it was.The foundation remains the same (like inode,
+group Descriptor etc) and changes made to the way of search,store and recover the files.<br>
+So read <a href="giis.html">giis_overview_implementation</a>
+before this.
+
+</p>
+
+O.k<br><p>
+ 
+Now you read that doc part.<br>
+<u>Limitations of giis1:</u><br>
+<pre>
+*Only files upto 8.04 MB can be recovered.
+*Even when you update,LEVEL_VALUE taken into account. 
+*Duplicates files  are available LEVEL_VALUE no.of times.
+</pre>
+<u>Advantages of giis2:</u><br>
+<pre>
+*files More than 8.04 MB can be recovered. 
+*LEVEL_VALUE limitation is eliminated. 
+*Specific file can be retrieved.
+*Efficient storage mgmt.
+*Duplication is avoided.
+*Tested for bugs quite a long period.
+</pre>
+
+
+
+In giis1 we used a concept called holes.Just to recall we used holes (sindirect_block_hole[],dindirect_block_hole[])to avoid wastage of space when we deal with files greater than 48KB
+and slightly fragmented-less than  five holes. <br>
+<u>Disadvantages of holes:</u><br>
+*Thus for all files less than 48KB or non-fragmented files we still wasted 80 bytes. 
+(since sindirect_block_hole[10],dindirect_block_hole[10] are not used).<br>
+*If  files has more than 5 holes then  we use sind or dind files with a fixed record size
+(1024 entries to hold blocks.)
+Say we have 24 holes then we use files to store these values the remaining 1000 are wasted.
+(4000 bytes)An substaincial amount of memory space wasted.<br>
+So inorder to avoid wastage of space.We introduce variable record size.Thus first record
+may be of  100 bytes and next might use 1000 bytes.
+The major problem that arise when we use variable sized record is that we can't use 
+random access like fixed records.<br>
+
+<p>
+
+
+So here we implementing some kind of index-sequentital  access method for retrival.
+
+Before looking at what's newly introduced in giis2.Let's have a quick look at what are all  removed from giis1.
+</p>
+<pre>
+
+* Following structures are removed, 
+		struct s_big_file_recover_info
+		struct s_bigger_file_recover_info.
+
+* Following members of struct s_file_recover_info are removed,
+	 	unsigned long   sindirect_block_hole[10]; /* Single Indirect Block */	
+	 	unsigned long   dindirect_block_hole[10]; /* Double indirect Block */
+
+
+
+What's introduced,
+
+* New members of struct s_file_recover_info,
+		unsigned long   is_offset; /* Total no.of Single Indirect Blocks   */	
+	 	unsigned long   id_offset; /* Total no.of double indirect blocks   */	
+	 	unsigned long   last_data_block;/* Block number where last data stored */
+
+* Global variables,
+		install_file		-- used to denote when to store files informations.
+		unsigned long s_offy	-- Keeps track of sind file offset during retrival. 
+		unsigned long d_offy	-- Keeps track of dind file offset during retrival.
+
+* New procedures,
+		avoid_dups() - Used to make an directory entry invalid if it's already recorded.
+		call2remove(int) - This is helper function to above one.
+		force_giis()	-Recovers the requested  file.
+		eye_on_gd()	-Keep track of group numbers.
+
+</pre>
+<p>
+First let's take up dir.c,<br>
+In show_dir() we first record directory entries  alone with the help of install_file.
+After recording directories we start to record files when install_file is set by search4dir()
+in searchnupdate.c<br>
+In  record_file() we do some raw error checks and store last_data_block which is used by
+the file.<br>
+We get rid of the process of storing files and directory simultaneously and record only directory details first then record files details.<br>
+Though storing file and directories provides speedy opertion there are  duplicate entries recorded in the process since i believe Reliablity is much more important than speed.<br>
+In search4dir() note the usage of install and install_file.We just record directories 
+record_dir() and update it with update_dir_info_file() and removes duplicates by 
+calling avoid_dups() and then record files.So that we don't have repeatation of data.
+This is differs from  giis1 whereas in giis1 we store dir and files simultaneously  
+so there is repeatation of data.By eliminating repeatation we made LEVEL_VALUE limitation
+absoultely irrevelant so set LEVEL_VALUE to maximum limit say 12.
+This is possible only because of elimination of duplicate entries in DIR file.<br><br>
+
+<u>Test for efficiency:</u><br>
+<pre>
+giis2 LEVEL_VALUE=12 occupies 462.1KB
+In giis1 with LEVEL_VALUE=12,
+A whopping 117.6MB(Yes it's MB)
+That's a hugeeee memory.  
+</pre>
+
+I believe avoid_dups() codes might be not so efficient but it's different. 
+The codes of avoid_dups() and call2remove() is given below,
+
+<pre>
+/*	 
+* Introduced for giis2:
+* avoid_dups():Called Only during installtion 
+* This is used to figureout whether we have any duplication of directory entry.
+* call2remove() if found.
+*/
+int avoid_dups(){
+int fp1,fp2,i,record_no,bity;
+unsigned long temp,end;
+	
+	fp1=open(DIR_INFO_FILE,0);	
+	if(fp1==-1){
+		perror("open:");
+		printf("\nError No:%d",errno);
+		close(fp1);
+		return -1;
+		}
+	fp2=open(DIR_INFO_FILE,0);	
+	if(fp2==-1){
+		perror("open:");
+		printf("\nError No:%d",errno);
+		close(fp1);
+		return -1;
+		}
+
+	/* Not so elegant code/method to check 4 repeatation 
+	 but i think...it's different */
+	 
+	end=lseek(fp1,0,2);	/* EOF */
+	lseek(fp1,0,0);
+	
+	temp=bity=0;
+	while(temp<(end-GIIS_DSIZE)){
+		i=read(fp1,giis_d.buffer,GIIS_DSIZE);
+		if(i!=GIIS_DSIZE){
+			perror("read1()");
+			printf("\nError No:%d \t fp=%d",errno,fp1);
+			close(fp1);
+			return -1;
+		}
+		temp+=GIIS_DSIZE;
+		
+		/* Read next record in fp2 from current record of fp1 */
+
+		lseek(fp2,lseek(fp1,0,1),0);
+		
+
+		while(i>0){
+		
+	       	i=read(fp2,giis_dt.buffer,GIIS_DSIZE);
+	       	
+		 
+		if((giis_d.info.inode_number==giis_dt.info.inode_number)&&(giis_dt.info.search_flag==1)){
+		
+			/* Get the duplicate record number */
+			
+			record_no=lseek(fp2,0,1)/GIIS_DSIZE;	
+
+			call2remove(record_no);
+			}
+		}
+	}
+close(fp1);
+close(fp2);
+return 1;
+}
+/*
+* Introduced for giis2:
+* call2remove()- This removes a directory entry from future processing by just resetting its 
+* search flag to zero.
+* This is helper funtion to avoid_dups().
+*/
+int call2remove(int record_no)
+{
+int fdes,i;
+	fdes=open(DIR_INFO_FILE,2);
+		if(fdes==-1){
+			perror("open");
+			return -1;
+		}
+		
+	lseek(fdes,(record_no-1)*GIIS_DSIZE,0);
+       	i=read(fdes,giis_dt.buffer,GIIS_DSIZE);
+		if(i!=GIIS_DSIZE){
+			perror("read1()");
+			printf("\nError No:%d \t fp=%d",errno,fdes);
+			close(fdes);
+			return -1;
+		}
+	
+	 
+	 giis_dt.info.search_flag=0;
+	 lseek(fdes,-GIIS_DSIZE,1);
+ 	 i=write(fdes,giis_dt.buffer,GIIS_DSIZE);
+
+		if(i!=GIIS_DSIZE){
+			perror("read1()");
+			printf("\nError No:%d \t fp=%d",errno,fdes);
+			close(fdes);
+			return -1;
+		}
+	 
+
+close(fdes);
+return 1;
+
+}
+</pre>
+<u>Implementing variable sized records:</u><br>
+In file.c,Since we use variable size records for sind and dind files use s_offy and d_offy along with s_offset and d_offset for reading these files.<br>
+</p>
+search4sequence12() and search4sequence13() both totally revamped to introduce variable
+sized records.<br>
+Note:  we scan though blocks and record only holes and nothing else in file.<br>
+<u>How we record file details:</u><br>
+Say for example,
+a file "human" with some holes (ie) blocks not in sequence we 
+just record these blocks in sind and dind file in {this_block,that_block} format.
+Which means when we reach this_block we have to jump to block number given by that_block. 
+if human has 5 holes in single indirect then s_offset=10 and
+2 holes double indirect blocks d_offset=4,Since it's a pair.<br><br>
+We are recording only {this_block,that_block} format values and not any index like inode_number
+in sind or dind.So We have nothing otherthan {this_block,that_block} in sind and dind files.
+Rememeber only non-sequential blocks are entered in files and all sequential blocks are 
+not recorded at all.
+
+<pre>
+Coding of search4sequence12() is given below,
+
+int search4sequence12(){
+unsigned long indirect_block[1024],prev;		
+int i,hole,fp,count;
+count=hole=0;		
+	lseek64(fd,(unsigned long long )giis_f.info.data_block[12]*fs.block_size,0); 
+	read(fd,indirect_block,fs.block_size);
+	
+			/* Check 4 holes */
+	if(indirect_block[0]-giis_f.info.data_block[12]!=1){
+		idata_block[count++]=giis_f.info.data_block[12];
+		idata_block[count++]=indirect_block[0];
+		hole++;
+	}
+	
+prev=indirect_block[0];
+for(i=1;i<1024 && indirect_block[i] ;i++){
+
+		if(indirect_block[i]-prev==1){
+			prev=indirect_block[i];
+			continue;
+			}
+		
+		else{		/* hole uses {this_block,that_block} format */
+			idata_block[count++]=prev;
+			idata_block[count++]=indirect_block[i];
+			hole++;
+			prev=indirect_block[i];
+		}
+
+}
+
+		/* Update is_offset and sfragment_flag and last_data_block */
+		
+	if((i==1024 || indirect_block[i]==0) && (hole==0)){
+				giis_f.info.is_offset=0;
+				giis_f.info.sfragment_flag=1;
+				giis_f.info.last_data_block=indirect_block[i-1];
+				return(hole);
+				}
+
+	if((i==1024 || indirect_block[i]==0 )&& hole ){	
+				giis_f.info.is_offset=count;
+				giis_f.info.sfragment_flag=2;
+				giis_f.info.last_data_block=indirect_block[i-1];
+				
+
+				/* Write into file */
+	fp=open(SIND_INFO_FILE,1);
+				if(fp==-1){
+					perror("Open:");
+					printf("Error no :%d",errno);
+					return -1;
+				}
+	lseek(fp,0,2);	
+	i=write(fp,idata_block,count*sizeof(unsigned long));
+		if(i!=count*sizeof(unsigned long)){
+			perror("write");
+			printf("Error no :%d",errno);
+			return -1;
+			}
+	close(fp);
+	return 1;
+	}
+
+return 1;
+}
+</pre>
+Code search4sequence13():<br>
+search4sequence13() is exactly same as search4sequence12() but use two lseek() and two read()
+since it's double indirect to access data.
+<a href="Kick_start.html"> How to access files Using Double indirect</a>
+Here to access files more than 8.04MB we use recursive call to search4sequence13().
+During recursive call we have make sure that we do access correct data blocks with
+a help of static prev variable and global round.Just before exit record the last data
+block for future error check while recover.
+<pre>
+ /* With new search4sequence13()  now we can get details of files 
+	greater than 8.04MB and hopefully upto 4GB size. */
+
+int search4sequence13(){
+unsigned long indirect_block[1024];
+int i,fp,count,err;
+static unsigned long prev;
+count=0;
+
+	if(round==0){
+
+		count=hole=0;		/* Counts holes */
+
+		lseek64(fd,(unsigned long long )giis_f.info.data_block[13]*fs.block_size,0); 
+		read(fd,indirect_block,fs.block_size);
+		
+		lseek64(fd,(unsigned long long )indirect_block[0]*fs.block_size,0);
+		read(fd,indirect_block,fs.block_size);
+		
+		prev=giis_f.info.data_block[13];
+
+	}
+	else{
+		lseek64(fd,(unsigned long long )prev*4096,0);
+		read(fd,indirect_block,fs.block_size);
+		err=lseek64(fd,(unsigned long long )indirect_block[0]*4096,0);
+		read(fd,indirect_block,fs.block_size);
+	}
+		
+		if(indirect_block[0]-prev!=2){
+
+			idata_block[count++]=prev;
+			idata_block[count++]=indirect_block[0];
+			hole++;
+		}
+	
+	
+	
+prev=indirect_block[0];
+for(i=1;i<1024 && indirect_block[i] ;i++){
+
+		if(indirect_block[i]-prev==1){
+			prev=indirect_block[i];
+			continue;
+			}
+		
+		else{
+			idata_block[count++]=prev;
+			idata_block[count++]=indirect_block[i];
+			hole++;
+			prev=indirect_block[i];
+		}
+
+
+}
+
+		/* Update id_offset and dfragment_flag and last_data_block*/
+		
+	if((indirect_block[i]==0) && (hole==0)){
+				giis_f.info.id_offset=0;
+				giis_f.info.dfragment_flag=1;
+				giis_f.info.last_data_block=indirect_block[i-1];
+				return(hole);
+				}
+
+	if((i==1024 || indirect_block[i]==0 )&& hole ){	
+				giis_f.info.id_offset+=count;
+				giis_f.info.dfragment_flag=2;
+				giis_f.info.last_data_block=indirect_block[i-1];
+
+				/* Write into file */
+				
+				fp=open(DIND_INFO_FILE,1);
+				if(fp==-1){
+					perror("Open:");
+					printf("Error no :%d",errno);
+					return -1;
+				}
+				lseek(fp,0,2);	
+				err=write(fp,idata_block,count*sizeof(unsigned long));
+				if(err!=count*sizeof(unsigned long)){
+					perror("write");
+					printf("Error no :%d",errno);
+					return -1;
+				}
+				close(fp);
+			}
+
+	if(i==1024 && indirect_block[1023]!=0 && indirect_block[i]!=0){
+				prev=indirect_block[1023];
+				round=1;
+				search4sequence13();
+	
+				}
+return 1;
+}
+</pre>
+				
+
+<u>How index-sequential access implemented in giis2:</u><br>
+<pre>
+A file named "human" with,
+s_offset=10, thus it has 5 holes or 10 entries ( block numbers )in sind file.
+d_offset=4 , thus it has 2 holes or 4 entries in dind file.
+Assume human is the first record.
+Then in order to access them,
+just read first 10 entries from sind and first 4 entries from dind and Make Jump when needed.
+
+Now we have another file named "space" with, 
+s_offset=2, thus it has 1 hole or 2 entries in sind file.
+d_offset=54 , thus it has 27 holes 54 entries in dind file.
+Assume "space" is the second record.
+Then we can't open and read first 2 entries from sind and first 54 from dind,
+we have to skip entries of previous record (human).
+Here is  where s_offy and d_offy plays a vital role.
+s_offy used to record the sum of all previous records s_offset.
+d_offy used to record the sum of all previous records d_offset.
+
+So here s_offy=10 and d_offy=4
+move to record of "space" by using,
+lseek(fp,10*sizeof(unsigned long),0)	- in sind file.
+lseek(fp,4*sizeof(unsigned long),0)	- in dind file.
+
+Now read 2 entries from sind file and 54 entries from dind file.
+
+Say we have a third file called "universe" which uses only sind file and not dind.
+
+Say it's s_offset=2;
+s_offy=12.Remember s_offy is sum of all previous records s_offset.
+d_offy=4 since d_offset=0;
+</pre>
+Rule is to update s_offy and d_offy whenever you want to access {this_block,that_block}
+from sind and dind file.<br><br>
+
+I thought about using a direct index(just store offset of each record)in s_file_recover_info for each records instead of updating s_offy and d_offy.
+since giis must go though all files sequentiallty to verify it's deleted or not i opted 
+to update s_offy and d_offy instead of using a permanent seperate index/address in struct.
+<br>
+<u>How to compute/access single or double indirect blocks:</u><br>
+<pre>
+* In giis2 we have following flags for single indirect,
+* sfragment_flag=0 files not uses single indirect at all.
+* sfragment_flag=1 file uses single indirect but it's already in sequence.
+* sfragment_flag=2 file uses single indirect with SIND FILE .
+</pre>
+<p>
+Since we know the access mechanism used EXT3 we compute those blocks on our own.
+Note : A single indirect can have maximum of 1024 blocks.
+If s_fragmentflag=1 then since it's in sequence we just increment block numbers 1024 times.
+If s_fragmentflag=2 then we keep incrementing until we met this_block given by sind file
+{this_block,that_block} and jump to that_block.Then keep on incrementing until we reach
+next this_block or maximum block limit of single indirect.<br>
+Note the usage of both s_offy and is_offset.<br>
+<u>Dual role:</u><br>
+<pre>
+s_offset  plays two vital roles.
+One when we sum up all previous s_offset,we get offset in SIND file.
+Secondly use s_offset alone will gives the total entries of this record.
+Similarly,
+d_offset also plays two vital roles.
+Sum up all previous d_offset to get to offset in DIND file.
+Use d_offset alone for total no.of entries of this record.
+This is the reason why we don't used any index for SIND/DIND.
+We used s_offset and d_offset as an address as well as a counting variable.
+</pre>
+In double indirect accessing ,Be careful about when to jump espeically
+when is at entry 1023.Here  d_offy and id_offset plays an vital role.
+
+
+
+</p>
+<pre>
+/*
+* get_it_i_say()-This will try to retrieve the deleted file.
+* Mofication for giis2:
+* New Access methods for the following flags,
+* sfragment_flag=0 files not uses single indirect at all.
+* sfragment_flag=1 file uses single indirect but it's already in sequence.
+* sfragment_flag=2 file uses single indirect with SIND FILE .
+*
+* dfragment_flag=0 files not uses double indirect at all.
+* dfragment_flag=1 file uses double indirect but it's already in sequence.
+* dfragment_flag=2 file uses double indirect with DIND FILE .
+*
+*/
+
+int get_it_i_say()
+{
+int i,fp,fdes,fd,num,hole,eof,count;
+unsigned long indirect_block,iblock[1024];
+char name[75]="/giis2/got_it/";
+
+
+		
+	/* just always create a  new file */
+	
+	strcat(name,giis_f.info.name);
+		fp=open(name,0);
+		if(fp!=-1){
+			/*Already retrieved */
+			return 1;
+			}
+		fp=open(name,O_CREAT | O_RDWR | O_TRUNC);
+			if(fp==-1){	
+				return -1;
+				}
+				
+		
+		fd=open(device_name,0);	
+			if(fd==-1)
+			ERROR
+		eof=1;
+		size=giis_f.info.file_size; /*  Decrement afer every read to denote EOF  */
+		err_size=0;	/* Increment after read for Error check */
+
+for(i=0;(i<=14)&& eof;i++){
+
+
+		/*Don't use fragment_flag Here */
+		
+	if(i<12 && giis_f.info.data_block[i]!=0){	/* Direct blocks */
+				eof=get_data_from_block(fp,fd,giis_f.info.data_block[i]);
+					if(eof==0){
+
+					close(fp);
+					close(fd);
+					return 1;
+					}
+		
+		continue;
+		}
+				
+		
+		/* part 1: Access single indirect blocks  */	
+
+	if(i==12 && giis_f.info.data_block[12]!=0){ 
+	
+			indirect_block=giis_f.info.data_block[12];
+
+		/* sfragment_flag=1 just read by incrementing number */
+
+	
+		if(giis_f.info.sfragment_flag==1){
+
+				for(count=0;count<1024;count++){		/* Sequence */
+				indirect_block++;
+				eof=get_data_from_block(fp,fd,indirect_block);	
+				
+				if(eof==0){
+					close(fp);
+					close(fd);
+					return 1;
+					}
+				}
+		}
+		
+		/* sfragment_flag=2 read from sind_info_file */
+
+
+			
+	if(giis_f.info.sfragment_flag==2){	/* holes here n there */
+				num=0;
+				
+		fdes=open(SIND_INFO_FILE,0);
+				if(fdes==-1){
+					perror("open");
+					printf("\nError No : %d",errno);
+				}	
+				
+		lseek(fdes,(s_offy-giis_f.info.is_offset)*sizeof(unsigned long),0);
+       		read(fdes,iblock,giis_f.info.is_offset*sizeof(unsigned long));
+       		CHECK
+		hole=iblock[num]; 
+				
+			for(count=0;count<1024;count++){
+			
+					if(indirect_block==hole){
+					indirect_block=iblock[num+1];
+					num+=2;
+					hole=iblock[num];
+					}
+				else
+					indirect_block++;
+				
+				eof=get_data_from_block(fp,fd,indirect_block);	
+					if(eof==0){
+						close(fp);
+						close(fd);
+						return 1;
+					}
+			}
+	}
+	continue;
+	}	
+		/* part 2: Access double indirect blocks */
+		
+	if(i==13 && giis_f.info.data_block[13]!=0){ 
+
+
+			indirect_block=giis_f.info.data_block[13];
+			indirect_block++;
+				
+		/* dfragment_flag=1 just read by incrementing number */
+	
+		if(giis_f.info.dfragment_flag==1){
+				while(eof){		/* Sequence */
+				indirect_block++;
+				eof=get_data_from_block(fp,fd,indirect_block);	
+				if(eof==0){
+					close(fp);
+					close(fd);
+					return 1;
+					}
+				}
+
+		}
+		
+		/* dfragment_flag=2 read from file_info_file */
+
+	if(giis_f.info.dfragment_flag==2){	/* holes here n there */
+			num=0;
+		fdes=open(DIND_INFO_FILE,0);
+				if(fdes==-1){
+					perror("open");
+					printf("\nError No : %d",errno);
+				}	
+				
+		lseek(fdes,(d_offy-giis_f.info.id_offset)*sizeof(unsigned long),0);
+       		read(fdes,iblock,giis_f.info.id_offset*sizeof(unsigned long));
+       		CHECK
+		hole=iblock[num]; count=0;
+		/* 4 holes occur first say at [13] itself */	
+		if(hole==(indirect_block-1))
+		indirect_block=hole;
+	
+			while(eof){
+			
+			/*
+			 For files more than 8.04 MB we need count to keep trace of 
+			 when to double jump from position 1022 to next.
+			 */
+			 
+
+		 /* 
+		  It's has taken few hours for me to find solution why the above<br> 			  if block doesn't reset count.The answer is, 
+		  In situations like we have a hole at indirect_block+1 and count=1023
+		  doesn't enter above block then count goes to beyond 1024 so in the 
+		  following iterations too we can't reset count so we have...
+		  */
+		 	 
+			 
+					if(indirect_block==hole){
+					indirect_block=iblock[num+1];
+					num+=2;
+					hole=iblock[num];
+					if(count==1024)
+					count=0;
+				     	}
+				else
+					indirect_block++;
+			 
+			 if(count==1024)
+			 {
+			 indirect_block++;
+ 	     		count=0;
+			 }
+				
+					
+				eof=get_data_from_block(fp,fd,indirect_block);	
+					if(eof==0){
+						close(fp);
+						close(fd);
+						return 1;
+					}
+			count++;
+
+					
+			}
+	}
+	}	
+
+	
+}
+	close(fd);
+	close(fp);	
+return 1;
+}	
+And force_giis() is introduced to recover a requested file alone.Code for 
+force_giis() is quite  simple and please refer get_it_i_say.c file.
+
+That's it.These are the major modifications made to giis.
+Rest of giis is pretty much the same as previous one.
+I guess giis is simple and when bugs arise put them into the box.
+And my inbox is &lt;lakshmipathi_g@rediffmail.com&gt;
+
+Just a second,i found a major bug in search4sequence13(),
+Here is  final few lines in search4sequence13()
+
+			
+	if(i==1024 && indirect_block[1023]!=0 && indirect_block[i]!=0){
+				prev=indirect_block[1023];
+				round=1;
+				search4sequence13();
+	
+				}
+return 1;
+}
+Can you figure it out! Yes we used recursive function.
+Note that i'm  are concentrated only on recursively  scanning through blocks and 
+just return.But not on how to return from all recursive functions which might be called.
+So redefined code as,
+
+				ret=search4sequence13();
+				if(ret==444)
+				return 1;
+				
+				}
+				
+
+return 444;	/* Will be caught by recursive function */
+}
+
+But still can't last_data_block correctly,
+the problem is with if(cond),
+So the correct final few part of code is,
+
+	if(i==1024 && indirect_block[1023]!=0){
+				prev=indirect_block[1023];
+				round++;
+				ret=search4sequence13();
+				if(ret==444)
+				return 1;
+				
+				}
+				
+
+return 444;	/* Will be caught by recursive function */
+}
+
+
+</pre>
+<pre>
+					The En..
+</pre>
+<u> A Big <strike>BUG</strike> Breakthrough:</u>
+<p>
+Just wait,before that some big files are not access by giis-2 i thought it's might be because of internal usage
+of fragments by GNU/Linux.But unsure about this since i heard that fragments are not yet implemented.
+So decided to just leave those things.As a one last attempt to find out the
+real hickup,first i copied Group descriptor which has no.of free blocks and inodes in all groups.<br>
+Then i copied a file of size say 300 MB,Once again copied GD and while 
+comparing these old and new GD i found blocks count decreased in more than one GD.
+So here since the data is large it can't be hold in single GD it's scattered around GD.
+And so far we accessing small files thus mostly blocks from single GD.When it comes 
+to large files we need to access more than one GD.<br>
+How to access data block from Next GD.?<br>
+So tried to set group number for each data block to my suprise it's works.
+we keep on eye on Group number by eye_on_gd().
+</p>
+So i'll quickly end this document before finding any more bugs.
+	<pre>
+					The End.
+	</pre>
+
+</pre>
+</pre>
+</pre>
+</pre>
+</p>
+</h3>
+
+</body>
+</html>

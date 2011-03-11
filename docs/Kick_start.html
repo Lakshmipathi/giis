@@ -1,0 +1,600 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>gET iT i sAY .giis - ext3 File Undelete Tool </title>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ISO-8859-1">
+<META HTTP-EQUIV="EXPIRES" CONTENT="0">
+<META NAME="RESOURCE-TYPE" CONTENT="DOCUMENT">
+<META NAME="DISTRIBUTION" CONTENT="GLOBAL">
+<META NAME="AUTHOR" CONTENT="Lakshmipathi.G">
+<META NAME="COPYRIGHT" CONTENT="Copyright (c) by Lakshmipathi.G">
+<META NAME="KEYWORDS" CONTENT="Linux File Undelete, ext3 File System, ext2 File System, File Recovery">
+<META NAME="DESCRIPTION" CONTENT="Free File Undelete Tool or Recovery Tool for Linux ext3FS">
+<META NAME="ROBOTS" CONTENT="INDEX, FOLLOW">
+<META NAME="REVISIT-AFTER" CONTENT="1 DAYS">
+<META NAME="RATING" CONTENT="GENERAL">
+<META NAME="GENERATOR" CONTENT="Gedit">
+</head>
+<body bgcolor="#EBEBEB">
+
+<center><font size=5>
+<u>
+KICK STARTING  WITH EXT3/EXT2 FILE SYSTEM</font>
+</u>
+</center>
+<br>
+<center><i><h3>An Incomplete and Unreliable Guide to File system</h3></u></i></center>
+
+<br>
+<h3>
+<pre>
+							By
+							G.Lakshmipathi.
+							&lt;lakshmipathi_g@rediffmail.com&gt;
+							July 2005.
+</h3>
+<br>
+
+
+
+<br><i><u>INTRODUCTION:</u></i>
+       <br>
+<p style="color : #000000; font-size : medium;"> 
+Hi!
+I'm happy to share few information on file system with you.One thing i want to make
+it clear, i may be carried away a bit, at times, that's purely because i want to keep readers interested and nothing more than that.<br>
+
+</p>
+<pre>
+WARNING:
+*******
+	If you don't want to mess up with file system.Delete this file.Right Now.
+CAUTION:
+*******
+
+	If you want to mess up a little bit with then Try other "useful materials".
+DANGER:
+******
+	If you ready to lose all data and don't care even your system explodes like a bomb.
+	... Got a right man.. go on..
+</pre>
+<br><i>How to Xplore this</i>
+<br><p style="color : #000000; font-size : medium;"> 
+
+
+	Go through this doc at the same time (underline the word same time ) try out some
+coding's on your own . Afterall the worst thing that can happen is ,"End up with losing all
+data ." I Believe you don't have confidential data.Certainly i don't have it.</p>
+Let's get started,<br>
+<p style="color : #000000; font-size : medium;"> 
+file system --mm...10 letters,so from here onwards, <br>
+#define file_system FS<br>
+FS consists of data in an organized way.
+In what way?
+there should plenty of ways to do it.That's why we have so many FS.
+Let's talk about Linux FS.
+When we say Linux FS,it may be anything.But most often ext2 or ext3 is used.
+From here on When i say FS i refers to EXT2 or EXT3 because i don't about other filesystem
+that doesn't mean i know everything in EXT FS.
+</p>
+O.k<br>
+<pre>
+Let's kick start and learn some basics right.  --as far as possible.
+Some key terms in EXT FS are,
+1)Blocks
+2)Inode
+3)Super block
+4)Group Descriptor
+5)Data block bitmap
+6)Inode Bitmap
+7)Inode Table
+</pre>
+
+<br><u>Blocks</u>
+<p style="color : #000000; font-size : medium;"> 
+Blocks consists of fixed number of bytes.
+Block size may be 1024,2048,4096.
+If you  find it diffcult to understand,
+Think of it as  an array say , char b[4096];</p>
+<pre>
+Size of block can be calculated using the formula,
+
+Block_size=1024*2@s_log_block_size;
+Wondering what that's @ mean,
+It's not a operator.
+@--->denotes power-of
+so if you s_log_block_size=2
+then your
+	Block_size=1024*2@2=1024*4=4096
+ the s_log_block_size can be found at super block entry.
+</pre>
+
+<br><u>Inode & Inode numbers</u><p style="color : #000000; font-size : medium;"> 
+	Most often you hear term inode in FS.Each file has unique inode.inode is nothing
+but a number used by kernel to identify each file.
+Remember in GNULinux/Unix everything is file.Harddisk is file.Keyboard is a file.
+Everydevice is a file and each has its own unique number called inode number.
+
+Each and every file has a inode  structure which consists of
+permission : who can access this file rwxr_xr_x,
+file type :what kind of file is this? a regular file or directory or socket or pipe or a device
+Time:Creation time,Deletion time etc.
+Pointer to Data blocks : To contents of the file it has 15 pointers to data blocks.
+We will discuss about these blocks managed and how to access the data a little bit later.
+But for now,i_blocks[0] will pointed to Beginning of file content.
+Take a look at ext3_fs.h for more.
+</p>
+First i thought about providing examples here n there but i didn't do that since much more fun and thrill in journey when we don't what will happen next.So try on your own to access superblock,and then group descriptor and others.Just enjoy!!!.
+<br><u>A Hint for beginners:</u><br>
+First define a union similar to super block or anything other struct you want to access.<br>
+say like,<pre>
+union me{
+	struct ext3_super_block{
+
+				}info;
+	char buffer[sizeof(struct ext3_super_block)];
+	}giis;
+	</pre>
+Open the file "/dev/hda7 " in<u> read only mode.</u>So that FS is not damaged... <br>
+use lseek() or lseek64() to move to offset.<br>
+read() into our buffer and then access.<br>
+Now,Try n access an inode say root.
+)
+
+<br><u>Super block</u>
+<br>
+i forgot something,<br>
+
+#define super_block SB<br>
+#define Group_descriptor GD<br>
+<p style="color : #000000; font-size : medium;"> 
+Keypoint is SB is at offset 1024 and it's size is 1024.
+SB contains  information on total number of inode,free blocks.
+first_inode,first_data_blocks and magic number which will be "ef53" -i believe it's id of both
+EXT2 and EXT3 (I'm pretty sure)
+take look at your SB structure at ext3_fs.h file.
+Go and search for ext3_fs.h file in your system now if doesn't know those entry while I'm searching for that file.
+O.k you can find inode,group_descriptor structure on that file too.
+Wondering what that _u32 or _u16 means? u refers to unsigned
+where as _s32,_s16  s refers to its counterpart signed one.
+32,16 refers to number of bits.</p>
+<p style="color : #000000; font-size : medium;"> 
+Coming to superblocks,in 5GB there will approximately 40 Block-Groups.
+Then there has to be  as many as  40 superblocks,for a 5GB  of partition size.
+Each block group has SB,GD,Data block bitmap,inode bitmap,inode table.So we have 40 of
+them each.
+</p>
+<pre>
+
+5GB->5*1024=5120MB
+Since Block size is 4KB or 4096 bytes can represent 32K data blocks or 128MB
+No.of Block Groups ==5120/128=40 Block groups.
+
+Smaller the block_size results in large number of block-groups.
+</pre><p style="color : #000000; font-size : medium;"> 
+Presently I'm doing some messup with FS like accessing and modifying super_block,group descriptors ,data block bitmap,inode bitmap,inode table.
+Accessing these entries from  Block-Group-0 seems to be much easy.
+But to access them from next Block-group-1 is proves to be very diffcult.So far,I tried many
+thing to get them but all resulted in -- mm...i don't call it as failure because they provide
+some other information which may be  or just might be  more vital than i'm what searching for.
+</p><p style="color : #000000; font-size : medium;"> 
+
+Thus if each of these of these Block-groups has one super-block and one Group Descriptor
+so we have 40 Superblocks and 40 Group descriptor.
+These 40 Superblocks are same.Only the first superblock is used by kernel.
+The remaining 39 superblocks are substitute (39 Substitute... much more than no.of players
+in cricket)
+The 39 Group Descriptor are also substitutes.
+How to traverse through these block-group?(which we see later --Hopefully)
+In SB there is entry s_block_group_nr which says what block-group we are currently in.
+Believe me,if know some basics you can do things that you may not imagined within a week
+yes within 7 days you will be in total new world.
+So go on...</p>
+<br<u>Group Descriptor:</u>
+<pre>
+So we got some basics of block and super blocks now we turn our knife towards group
+descriptors.
+GD is very critical for FS.It consists of the following,
+	Starting Block number of data bitmap of current GD.
+	Starting Block number of inode bitmap of current GD.
+	Starting Block number of inode table of current GD.
+And
+	no.of free data blocks and inodes of this GD.
+</pre><p style="color : #000000; font-size : medium;"> 
+Just a week or so before when i come across bitmap i said "What the hell this is bitmap?"
+Since i think GD is THE most important part in FS most of remaining doc will be on GD. First three entries are very important.
+I think,these three entries of GD along with s_block_group_nr of SB used in access data from other block-groups. Since we know GD is next to SB,starting address of GD=block_size (say 4096)
+</p>
+i got it !Just now I got that most vital information!.
+It's not as much diffcult to access other blocks as i first thought it's very simple.
+You are not able to access other block-Group directories simply because there are far far away.
+unsigned long range is 0 to 4294967295,so in order to access say for example 4294967298th byte,
+it's 3 bytes more than the actual range.<p style="color : #000000; font-size : medium;"> 
+<pre>
+	So i tired this ,
+			lseek(fd,4294967295,0);
+			lseek(fd,3,1);/* from current */
+</pre><p style="color : #000000; font-size : medium;"> 
+But Yes we can reach that byte but still there is major problems.You cannot access it
+because of range limitations while computing.That's when i remember Gadi Oxman said something about lseek() in his Doc part.Thanks Gadi Oxmen!!! </p>
+To access larger files use llseek().
+lseek() must also be replaced with llseek() or lseek64().Use lseek64.
+so you can't use data type of "unsigned long" instead use "unsigned long long" obviously,
+so finally a week long expedition coming to nice end by accessing /home dir.
+</p>
+<pre>
+The following shows GD struct (see it in ext3_fs.h )
+
+/*
+ * Structure of a blocks group descriptor
+ */
+struct ext3_group_desc
+{
+	__u32	bg_block_bitmap;		/* Blocks bitmap block */
+	__u32	bg_inode_bitmap;		/* Inodes bitmap block */
+	__u32	bg_inode_table;		/* Inodes table block */
+	__u16	bg_free_blocks_count;	/* Free blocks count */
+	__u16	bg_free_inodes_count;	/* Free inodes count */
+	__u16	bg_used_dirs_count;	/* Directories count */
+	__u16	bg_pad;
+	__u32	bg_reserved[3];
+};
+</pre><p style="color : #000000; font-size : medium;"> 
+I cut-n-pasted GD struct, group descriptor may be seems to be diffcult  but it's
+very simple.Understanding group descriptor allows to access any file or directory by using
+it's inode number only.
+Since you  know that root inode number is 2.
+That's Great!.
+Now you can access files that starts with /. (Entire System)
+Note that root is parent of all files.So Now you can access all files by knowing that root
+inode is 2.Rest of it very simple.
+Remember all block group has SB,GD,data block bitmap,inode bitmap,inode table.
+
+</p><pre>
+Following are most important values,
+	bg_block_bitmap.
+	bg_inode_bitmap.
+	bg_inode_table
+</pre>
+<p style="color : #000000; font-size : medium;"> 
+Let's spend sometime with bg_inode_table since knowing  this  makes the remaining  two
+easier.
+inode_table is nothing but inode itself.
+Say,
+ bg_inode_table=4
+Then it refers to block number 4 where all inodes related to this are stored in the format
+ext3_inode of size 128 bytes.
+w.k.t,(-We know That)</p><pre>
+Block_size=4096
+inode_size=128
+The no.of inode_per_block=4096/128=32
+W.k.t,
+inodes_per_group=16320
+So there is 510 blocks of inode table is available</pre><p style="color : #000000; font-size : medium;"> 
+If don't understand the above said 510 blocks of inode table .NO PROBLEM. It's Just
+an information which is not needed and used here after.Because that
+might lead to serious confusion.( Not for you ...but for me :-})</p><pre>
+So getting back where we feel confident,
+if
+ bg_inode_table=4
+4 is block number.If we know blocknumber then to access that block's content,
+<u>LittleFinger Rule is:</u>
+Address=block_number*block_size;
+address=4*4096=16384
+so we got offset of inode_table.
+if struct ext3_inode size=128 then
+inode number 1 is at 16384
+inode number 2 is at 16384+128=16512
+Yes got root inodes offset 16512.
+So we can access it's contents.
+
+That's it .so easy...Keep going..
+Steps to access root inode or any inode:
+
+1)First get the inodes group number.
+2)From group number we have to access inode_table entry of that group Descriptor by computing
+group offset.
+3)Then compute inode offset.
+
+For example,(once again )to find root's offset,
+1)Group Descriptor number or group number = (inode_number-1) / inodes_per_group
+then Group number=0.<br>
+2)Then Get offset of group number 0,
+Group offset=Block_size+group_number*sizeof(struct group_desc)
+Group offset=4096+0*32=4096.
+Set lseek(fd,4096,0)
+read(fd,buffer,Sizeof(struct group_desc)
+Display inode_table value which is 4 (in my system )<br>
+3)Then root_inode_offset=inode_table*block_size+index_number*sizeof(ext3_inode)
+Where
+index_number=(inode_number-1)%inodes_per_group
+root_inode_offset=4*4096+1*128=16512
+</pre><p style="color : #000000; font-size : medium;"> 
+Finally we got the offset then,
+use lseek() to go there
+read() to get root inode entries.
+Here we got only root_inode_structure (ext3_inode of root) Then where is it's contents
+like subdirectories /bin,/home etc.</p>
+<p style="color : #000000; font-size : medium;"> 
+Always note that inode is somekind of book-keeping about each files so it contains only
+some attributes or characteristic of a file.The content of file is at another block
+indicated by i_block[0].
+i_block[] has  direct entry,indirect entry,double indirect entry and triple indirect entry.
+We see them soon until let's deal with i_block[0]
+i_block[] is integer values it denotes block number
+i_block[0] is 514
+Then the content of the root inode is kept at block number 514.</p><p style="color : #000000; font-size : medium;"> 
+So in order to access that block,
+Use our littlefinger rule
+Address=514*4096;
+So use lseek() to move to that address.
+Then read()
+and See what comes out...
+Some known and unknown data..
+just wait a bit ...
+Once you move to that address one cannot just read like that,
+You have to now how it's contents are stored.
+Contents are stored as in format of struct ext3_dir_entry_2{}
+So while retrieve use this struct format to read the content.</p>
+
+o.k <br><p style="color : #000000; font-size : medium;"> we can access root_inode and it's contents.
+What's left ? We are nearing the  end  of file system basics.(since i think i don't
+much about file system so can't write/type more...)
+Regarding inode or blocks bitmaps is a map which gives you idea about which inode is
+used and which is free.
+For example ,
+Move to block bitmap which will be at 4096 from the end of super block.
+i.e next to group descriptor.</p><pre>
+char a;
+FD--> file system say /dev/hda6
+read(fd,&a,1);</pre><p style="color : #000000; font-size : medium;"> 
+So we read a char from block bitmap,
+This one byte will consists of details about 8 blocks.Yes each bit denotes whether block is free or used.Free is denoted by 0 and used by 1.
+Then read next byte,
+It will have information about block 8 to 16
+and so on..</p><p style="color : #000000; font-size : medium;"> 
+Inode bitmap is same as block bitmap.
+Go to inode block which is at the end of block bitmap
+read a byte which gives you 8 inodes details
+Remember one more thing,each
+block bitmap block contains information about 32768 blocks (blocks_per_group)
+In order to access 32770 you have get block bitmap of next group Descriptor.
+Same the  case with inodes too.
+Remember THE most important thing is whenever you want to access inode or
+block ,First Get it's group number for further processing.</p>
+<p style="color : #000000; font-size : medium;"> 
+ext3 Journaled version of ext2.
+Journal refer to recording each activity from time to time so that when something goes
+wrong it can restored to its previous values.
+It records superblock,Group Descriptor,and inodes and data blocks too.
+I'm not sure and don't know much about Journal.<br>So.......<center> The End.</center> </p>
+<p style="color : #000000; font-size : medium;"> 
+O! just forgot about i_block[] ,
+as i said before,(Yes i  said... probably you may not heard it :-)
+first 12 are direct blocks.
+i_block[0] to i_block[11] will contain data block number.So access that block to read data.<br>
+<u>How to access Single indirect Data blocks:</u><br>
+i_block[12]-Contains block number go to that block which does not have data instead of another
+block number which will hold the data - Single indirect block.
+i have tired to delay i_block[] since I'm not familiar with it.
+</p><p style="color : #000000; font-size : medium;"> 
+What is pointer to data mean?
+How it really points to a block contains data?
+Here is some answer,
+For example,
+i_block[12]=12345;
+Then by definition 12345 must have a block number which contains data.
+Actually,we have more than one block number.
+Yes there are 1024 block numbers are available to support files up to 4.04M.B
+and these 1024 block numbers are  data blocks.</p>
+<pre>
+Let's go a bit back and concentrate on direct blocks once again,
+there 12 direct blocks if each block size=4096 then file access with direct block
+is of size 48KB.
+i.e 12*4096/1024=48KB
+If we have 1024 block numbers in single indirect then file size must be
+1024*4096/1024/1024=4M.B
+add that direct block size 48KB to 4MB So one can access file file of 4.04MB of
+file size  using 12 direct and single indirect block.
+
+Most of single indirect blocks are in sequential order.
+if i_block[12]=12344;
+lseek64(fd,i_block[12]*block_size,0)
+read(fd, indirect_block,4096);
+where indirect_block is an array of 1024 of type unsigned long.
+then indirect_block[0]=12345 ==> Access this block for data
+indirect_block[1]=12346
+and so on...
+indirect_block[1023]=13368
+</pre><p style="color : #000000; font-size : medium;"> 
+Mostly these blocks are in sequence.
+But sometimes during allocation if block is used then another block is used.
+So it's not a precondition that single indirect blocks are always sequential.I conducted a
+little test on files that use only direct block and single indirect block sequence.
+That is files that use i_block[0] to i_block[12].
+</p><pre>
+Here is the result,
+<u>Test1:</u>
+Total files examined 132.
+Total files in which single indirect blocks are in sequence is 66.
+Total files in which single indirect blocks are not in sequence is also 66.
+
+Out of these 66 files there only 22 files has  more than 50 holes.
+And 42 files has less than or equal to 5 holes.
+When i say holes it refers to no.of non-sequence entries in single indirect blocks of 1024.
+Number of non-consecutive blocks are  holes.
+For example,
+[0]=222111
+[1]=222112
+[2]=222114 ====>here we have a jump from 222112 to 222114 so hole 1.
+[3]=222115
+[4]=222116
+[5]=222125====>Hole 2
+...
+...
+...
+[1023]
+<u>Test2:</u>
+Total files 1071
+Not in sequence 600
+In sequence 471.
+297 files has Holes less than 5
+where as 237 files has holes greater than or =50
+</pre>
+
+<u>How to access Double indirect data blocks:</u><br>
+About i_block[13] is also similar,</p>
+<pre>
+It's double indirect so access two blocks,
+i_block[13]=180217
+now lseek64(fd,i_block[13]*block_size,1)
+and read(fd,indirect_block,4096)
+say here we get indirect_block[0]=180218
+once again
+lseek64(fd,indirect_block[0]*4096,1);
+read(fd,indirect_block,4096)
+So indirect_block[0]=180219
+indirect_block[1]=180220
+...
+...
+...
+indirect_block[1023]=19234
+</pre>
+<u>How to Access files greater than 8.04MB:</u><br>
+<pre>
+when file size goes beyond 8.04MB obviously it needs more 1024 blocks.
+To make it clear let's have file named "blackhole" with size 11.5MB
+Up to i_block[12]  we accessed 4.04MB size.
+
+i_block[13]=100;
+It's double indirect so lseek() and read() twice.
+We get 102 where data of "blackhole" begins,
+(note : if file fragmented we get any block say 103 or 155...)
+
+Since each block run has maximum of 1024 blocks.
+[0]=102
+[1]=103
+[2]=104
+......
+......
+[1021]=1124
+[1022]=1125
+[1023]=1126
+
+So now we access next 4MB (i.e from 4.04 to 8.04 MB) of the "blackhole" and so far
+we access 8.04 MB.
+Note that most vital thing in double indirect is that when a file is more than 8.04 MB.
+Now to access next block run another 1024 blocks we have pointer stored at
+[1023] block.That is the block 1126 is not the data but a pointer.
+So Think 1023 as i_block[13]
+
+ie. i_block[13]=1126 (It's not real value just imagine like this only when you
+want to access more than 8.04MB.)
+Then again lseek() & read() twice we get data,
+[0]=1128
+[1]=1129
+....
+....
+[--]=0; ==> we reached 11.5MB size.
+....
+Since file size falls into this block run of 1024 we don't anymore imagination of i_block[13]
+is needed.
+If the file "blackhole" is 15MB instead of 11.5MB then,
+[0]=1128
+[1]=1129
+....
+....
+....
+[1022]=2151
+[1023]=2152
+
+So far we access 12.04MB of "blackhole" in order to access up to 15MB,
+[1023] is a pointer.
+imagine [1023] as i_block[13]
+so i_block[13]=2152.
+Then again lseek() & read() twice we get data block,
+[0]=2154
+[1]=2155
+[2]=2156
+....
+....
+....
+[--]=0 ==> we reached file size 15MB
+
+THE most important thing in double indirect block is whenever you want to access files
+more than 8.04MB IMAGINE i_block[13]=[1023] & lseek() and read() twice.
+in order to access next set 1024 data blocks.
+One important Note:<br>
+One more THE vital thing,when we have to access large files it's data block will be
+scattered and uses more than one group descriptors so keep checking whether the block belongs to
+this  group or not.If not then  find the blocks corresponding group number and then
+access.
+
+
+</pre><p style="color : #000000; font-size : medium;"> 
+
+An easy way remember simply use one lseek() and one read() for single indirect blocks.
+Use two lseek() and two read() for double indirect block.
+you will have series of block numbers. I guess in total there are 1049611 blocks will be used. So that we can access file as large as 4.GB<br>
+
+On i_block[14] i can't say anything more than this,it will be used by EXT as
+ a last weapon  has against you.<br>
+ I guess here we need three lseek() and three read() for triple indirect block.
+<br><u>Exercise:</u><br>Try to creat a file which uses i_block[14] completely.
+It will be handy if you have harddisk of size 2T.B (:-}<br>
+Please complete the above exercise and sent to me in a floppy.
+<br>
+<br>
+Finally,<br><p style="color : #000000; font-size : medium;"> 
+I'm ending this doc simply because i don't know anything more than this about file system to type or write.I believe now you can access any inode and its content by using its number.
+
+<br>
+and Finally,<br>
+<pre>
+
+I hope this documentation of file system will helped at-least a bit in your work.
+
+I believe the  gET iT i sAY.giis. will also provide some more information on coding.
+See also  <a href="giis.html">giis overview and implementation</a>
+
+Send your comments or criticism or cash to &lt;lakshmipathi_g@rediffmail.com&gt;
+
+
+#define cash "thanks"
+					The End.
+</pre></p>
+</h3>
+</pre>
+</h3>
+</font>
+</center>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

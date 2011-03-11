@@ -1,0 +1,223 @@
+07.17am@Aug 21 2008:
+Need to fix parent inodo value in giis -f - Though it's a minor bug.(fixed on aug31 )
+Test it on Fedora 9/10
+Fix need for large file names (so that get_sample_data() works properly) ~~~~~~>Yes almost over (aug 23)
+Move other files to misc directory
+increase file name from 30 to 64 byte MAX_FILE_LENGTH~~~~~~~~>done
+---------
+---------
+
+Bug:WHY/How following file contents is read by giis as metadata during giis -i?
+
+Fix:Till now ,i think it read symbolic link & assumes accessing valid data reads
+first blk content(unforunately first blk is not 0) :) 
+which leads to a bug in giis.
+Better skip these symbolic links ( file type 7)
+
+Bug:raw Error  check
+	returning 3 ---typo lol ....it's not 49512 it's 49152.
+=================
+2PM@Aug 22 2008
+
+BUG:why sometimes tooooooo many files opened by giis??????????
+
+Fix:iin.in.i_block[0] == iin.in.i_block[1]
+
+Above error check in dir.c returns without closing opened file.
+You  can wonder when this happen ,
+when a file is empty it true both blks has same address which is 0 :)
+
+I need to re-examine this part.
+--------------
+Performance:
+/root - 19.5 GB (Since i'm root ;-)
+/home - 43MB
+
+
+/var=226MB
+
+Level:7
+giis -i took  --02 mintues 23 seconds
+giis -u took  --01 minute 8 sec
+giis stat:
+/giis  -- > 2.5MB
+KDevelop RealPlayer +quanta plus+firefox running on 
+
+Intel Celeron 1.733 GHz
+512 MB RAM
+80 HDD
+
+
+======================
+
+23 aug 10am:
+Is it possible to recover mysql db with giis? 
+
+YES.........it works :-) :-) ;-)
+
+giis did recover deleted mysql table
+
+check the same with specific mysql-db
+check the same with mysql itself ;-)
+
+
+--------------
+bug:Why parent name of file is not reflected correctly?
+
+Found:
+It's because ,
+".." will give parent of current directory "."
+i think i made mistake,
+for files too giis took ".." as parent instead of "."
+Need to fix this bug:
+
+--------------
+sep 5 @815am:
+recover and restore -Fill the struct with values and use it if user requested this option.
+(file.c,get_it_i_say.c,giis.h)
+
+
+Save system directories too not just system files(check dir.c for more)
+
+What giis will do if we have same filename under different directory?
+?????????????---Use inode for search and recovery rather than file name
+
+
+-------------
+ mv /giis/got_it/lol /root
+if move successful then creat soft link
+ln -s /root/lol /giis/got_it/lol
+--------------
+wait instead of doing above simply creat hardlink at restore path :)
+
+------------
+User defined --LEVEL_VALUE????????
+-----------------
+Why&how duplicate files are recorded?--need to fix---yes.done
+
+ya this did the trick ...check4file_dups (parent_original);...instead of this i was digging something for
+days.lol:)
+-----------
+finding end of directory--need to fix.
+entry is not setting to zero when ever u get 
+name = . and type =2 and rec_len=1--wow...once again hair pulling for more than few days didn't work...
+after a relaxing for 8 hr or so ...got it with in first 20 mints.:)
+
+----------------
+
+enable giis for large directories ..greater than 4kb ---todo next release
+
+oct-2:@11.53am
+large_dir support of given - provided the blocks are in seq.
+unlink restore file.
+
+-------------
+
+#lsr-
+#supports just direct blocks --No -may be separate tool
+
+nov 24@8am
+-----------
+giis 4.4
+
+1)Large directory support -OK
+2)Provide giis.conf in case auto-detect for device fails -OK
+3)giis.conf for update - OK
+4)provide log file - when giis update last time.
+5)Try and re-create path if not exists.
+6)gui-Comes in giis 4.5
+7)check for updated/deleted rows from tables.
+8)have same permission for files.-OK
+Support for Debian systems-OK
+++++++++++++++++
+(i_uid,i_mode,i_atime,i_ctime,i_gid)
+changed from int to short int
+
+	gid_t             mode;			  /* File type */
+	uid_t             owner;		  	  /* owner's uid */	
+
+
+
+jan -4-2009 @9.30pm
+UI- Path 
+/etc/giis.conf file for tuning 
+giis.conf should have device name,directories and update time setup.
+
+
+jan-11@1.35am
+added read_config_file() to file.c
+dir.c invokes above fun. 
+To fix:
+(giis.conf file included during install...but during giis -u)
+read_conf_file_inum () - added in file.c to get&update flag in DIR_INFO_FILE
+in searchnupdate.c,new global variable new_dir_added  is used to updated new directory's sub-directory during update
+fix:int read_dir_info_file () -- stupid use tfd not fd :(
+
+
+Almost ready for giis4.4 ;)
+
+------
+if 
+#include <linux/ext3_fs.h> 
+not present then only:
+#include "ext3_fs.h"
+
+--------------------------------
+TODAY I RESIGNED FROM MY JOB :( -- BUT LINUX IS OUT THERE :) 
+
+jan 13@2.04am
+recovered files will have the owner and permission bits :-)
+
+Jan-22 
+WITHDRAWN the resignation :( -let's see 
+
+jan30:
+Support of new directory&its file during update
+
+
+feb-9@10.50pm
+time based recovery
+feb-10 @ 23.11
+Yes..deleted on/before/after/between - OK
+
+
+
+Development & Test Environment:
+==========================
+giis 4.4 development Environment:
+--------------------------------
+GCC 		: 4.1.2
+Linux Kernel 	: 2.6.25.4 
+Distro 		: Fedora 7
+IDE 		: KDevelop
+
+giis 4.4 Test Machines:
+----------------------
+======	             ======               ===		============		===========
+distro               kernel               gcc 		Installed?		Recovered?
+======               ======               ===		============		===========
+Fedora 7		2.6.25.4	   4.1.2	   yes			yes
+Fedora 10						
+Ubuntu 8.10		2.6.27-7           4.3.2           Yes			yes
+Mandriva 2009		2.6.27		   4.3.2	   Yes			yes
+Debian Etch		2.6.18-5	   4.1.2	   Yes			no.Only giis-dump option works.
+
+
+
+change /giis to /usr/share ------????????
+
++++++++++++++
+may 30:10.30pm
+----------
+giis 4.5
+---------
+improved giis -u - remove check4dups for all files unless it's needed - OK 
+added TIME value in giis.conf file.
+----------------
+june 20 11.03pm:
+giis4.6 
+added LEVEL_VALUE in giis.conf(changed files :file.c + init.c + searchnupdate.c+giis.h) - OK
+
+optimization : unncessary call to check4samplefile_dups from get_sample_data() in searchnupdate.c
+is skipped during installation.This is necessary only during update -OK
+

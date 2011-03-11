@@ -1,0 +1,89 @@
+Limitations and Future Versions:
+================================
+see giis/changelog for more information on versions.
+giis v4.4:
+--------
+*Large directory support
+*Recovered and Restores file with original owner and access permission values.
+*Allows recovery of files by Deleted date.
+*Configuration file allows user to specify and modify directory setup and device name. 
+*Both New files and New directories added during update.
+*Few Bugs fixed.
+			
+giis v4.3:
+--------
+* Bug Fix  : Won't prompt user during giis -u
+* New option to list deleted files
+* deleted files access rights are set.
+* Recover deleted files and restores it
+* System files or hidden files can be recovered.
+
+giis v4.2
+---------
+*Provides user option to choose directories.
+*Code cleanup and documentation provided by James Scott Jr
+*Minor bug fix.
+
+
+giis v4.1
+---------
+*Get Lastest version of deleted file:
+	-With giis.v.4.1 user can recover last version of a file,if available.
+         i.e user can get latest/updated/modified version of a deleted file.
+	 This option is available only with giis force - giis dump
+*giis analyser :
+	- While recover giis analyser try to analyse the disk content so that user can decide whther to recover or not.
+*updates :
+	- giis updated every 20 mintues.
+
+
+giis v4.0
+---------
+*Get by File Type:
+	-In giis.v4.0 user can recover only specific type of files rather than all.
+	 For example,user can recover deleted .mp3 format or .doc format files rather than all   files.
+*giis-dump:
+	-powerful giis-dump option just dumps the data from hard disk for given file from its older location if the content is modified.
+	 But before dumping data it shows sample data from disk and asks user whether to dump the current disk data or not.
+giis.v3.0
+---------
+*Bug fix 
+
+Advantages of giis.v2.1 over giis.v2:
+----------------------------------
+*Autoupdates :
+	-In giis.v2 only new files created in existing directories are updated.Thus
+	 new directories are not updated.
+	 With Version new directories are also updated.
+	
+*Elimination of repeations.
+
+Advantages of giis.v2 over giis.v1:
+------------------------------------
+*files More than 8.04 MB can be recovered. 
+*Here Specific user files and Specific file can also be recovered.
+*LEVEL_VALUE limitation is eliminated. 
+*Efficient storage mgmt.
+*Duplication is avoided.
+*Tested for bugs quite a long period.
+
+Limitations:
+------------
+
+*Fails if the deleted file's content is overwritten by other files results 
+in garbage.
+
+*Would fail if Fragment blocks handled internally by gnu/linux is implemented.
+
+
+Future versions:
+---------------
+
+*)There are  few things which can be done to this tool.
+	->Implementation of GUI interface.
+
+	
+I'm not sure about other stuffs,if you got any suggestions - let me know.
+
+
+

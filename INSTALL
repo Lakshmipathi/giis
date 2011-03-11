@@ -1,0 +1,103 @@
+Note-0:/etc/giis.conf is the configuration file.For more info. please refer configuration file setup below.
+
+Note-1:If your machine has earlier giis versions (<=4.2),please uninstall it and freshly install giis.
+
+Note-2:By default,giis updates every 20 mintues,if you want to adjust this setting then edit both in /etc/crontab file and /etc/giis.conf file.
+
+Installing Binary :
+===================
+
+To install giis binary just follow the steps:
+
+1) Change giis directory  
+
+	cd giis_XX (Replace XX with appropriate version number for example giis_4.3)
+
+2) Run the shell script named 'install_giis.sh',
+
+	For interactive installation use:
+
+	sh install_giis.sh 0
+	
+	For non-interactive ,config file installation ,(more info see "Configuration File Setup" below)
+
+	sh install_giis.sh 1
+	
+
+Installing giis from Source Code :
+==================================
+
+To compile and install giis from source code just follow the steps:
+
+1) Change to source directory.
+
+	giis_XX/src(Replace XX with appropriate version number,for example giis_4.3)
+
+2) Run the configure script,
+
+	./configure
+
+3) Compile the programs,
+
+	make
+
+4) Install the programs,
+
+	make install
+
+5) Now Run giis -i.
+
+6) Finally run following commands,
+ 	cp ../config/hai /giis
+	cp ../config/quotes /giis
+	cp ../config/giis.conf /etc
+
+Configuration File Setup:
+=========================
+config/giis.conf should be edited before running giis installation with config file using command,
+sh install_giis.sh 1
+It will place the file under /etc.
+
+
+During installation, giis will prompt user for directories that needs to be protected.
+After installation user can't configure(add) any new directories.
+To overcome this limitation,/etc/giis.conf file allows user to configure directories
+(after installation)list that can be protected.
+
+
+During installation ,if auto-detection of device fails you can enter device name directly  in $DEVICE macro.
+Example:
+$DEVICE = /dev/sdaX$
+
+Replce X with your device number.Please make sure there is blank space/whitespace before and after = symbol.
+The line should have $ symbol at beginning and at the end.
+
+You can add directories using $DIR macro.Again Please make sure there is blank space/whitespace before and after = symbol.Here too line
+should start and end with $ symbol.
+
+These directory *must* be direct sub-directory of /,while /etc is allowed entry and /etc/something is not allowed
+
+Valid Examples:
+
+$DIR = etc$
+$DIR = var$
+$DIR = opt$
+
+Invliad options:
+$DIR=etc$ 		-- Invalid since there should be whitespace before and after =.
+$DEVICE=/dev/sda2$	-- Invalid since there should be white space before and after =.
+DIR = etc 		-- Invalid since there should be $ symbol at the beginning and end of line.
+$DIR = etc      	-- Invalid since there should be $ at the end of the line.
+$DIR = etc $		-- Invalid since there whitespace space before $
+
+I hope above examples helped you.In simple terms ,
+1)There MUST BE single whitespace before and after = 
+2)There SHOULD NOT BE any whitespace before or after $.
+
+
+$LEVEL_VALUE ,used to provide Max.Directory depth.Default value Supports upto 10 levels of sub-dir.(dir1/dir2/dir3.../dir10)
+
+
+
+
+

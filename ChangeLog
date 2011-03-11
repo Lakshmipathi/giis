@@ -1,0 +1,235 @@
+2009-06-21 Lakshmipathi.G <lakshmipathi.g@gmail.com>
+	* Release of giis 4.6
+	What's up doc?
+			-Code optimized for giis installation. It reduces 5% of installation time:)
+			- Config file has LEVEL_VALUE entry for specifying Max.Directory Depth.
+
+To accomplish this, changes made to,
+
+giis.conf 		- New config value called LEVEL_VALUE is added.
+init.c			- converts LEVEL_VALUE config value from ascii to int.
+file.c			- read_config_file() reads the LEVEL_VALUE value from config file.
+searchnupdate.c		- Level value is used.
+			  optimization : unncessary call to check4samplefile_dups from get_sample_data() in searchnupdate.c
+			  is skipped during installation.This is necessary only during update
+giis.h			- LEVEL_VALUE is commented.
+
+..........................................................................................
+
+2009-05-31 Lakshmipathi.G <lakshmipathi.g@gmail.com>
+	* Release of giis 4.5
+	What's up doc?
+			-Code optimized for giis auto update. It reduces the update time by half :)
+			- Config file has TIME entry for auto update.
+		
+
+To accomplish this, changes made to,
+giis.conf 		- New config value called TIME is added.
+init.c			- search4fs() converts TIME config value from ascii to int.
+file.c			- read_config_file() reads the TIME value from config file.
+dir.c			- Time Check  performed before calling check4file_dups().
+..........................................................................................
+2009-02-08 Lakshmipathi.G  <lakshmipathi.g@gmail.com> 
+	* Release of giis 4.4
+
+		What's new?
+			-Large directory support
+			-Recovered and Restores file with original owner and access permission values.
+			-Allows recovery of files by Deleted date.
+			-Configuration file allows user to specify and modify directory setup and device name. 
+			-Few Bugs fixed.
+			-Both New files and New directories added during update.
+			
+			
+
+To accomplish this, changes made to,
+
+get_it_i_say.c 		: Permission bits are set and verify_inode () modified for time 
+file.c			: 3 new functions [read_config_file(),read_config_file2(),read_conf_file_inum()] are added for giis.conf file set up.
+dir.c			: set_content_offset() and show_dir() are updated to support large directories which are in-sequence.
+giis.h 			: fs.inode_size is added instead of using macro INODE_SIZE; and install_mode to support config file setup.date_mode and few variables for time based recovery.
+main.c			: User input for time based recovery.
+..........................................................................................
+2008-09-27 Lakshmipathi.G  <lakshmipathi.g@gmail.com> 
+	
+	* Release of giis 4.3
+
+		What's new?
+			-Recovers deleted files and Restores it.
+			-System files /Hidden files can be recovered.
+			-Several Bugs fixed.
+			-Tested with mysql tables.
+			-A new website www.giis.co.in is created.
+			
+
+To accomplish this, changes made to,
+
+file.c 			: New function ,display_deleted_files() ,lookup() is added.
+main.c			: New List deleted files option  is added.
+dir.c 			: Fix Update time of newly added files.
+			  Fix prevents the promting user for inclusion of non - root parent new directory while giis update
+			  Stores hidden files too which begins with .
+			  Fixed issue of correct parent name.
+			  Restores deleted file to it's original place.
+			  File name length increated MAX_FILE_LENGTH
+			  Fix done on issues : Gather sample data,Ignoring symbolic links,parse directory keeping block size in check.
+giis.h 			: New structure 's_rere_info' for recover and restore files option.
+get_it_i_say.c		: recover_restore() is added.
+			  Permission mode is set, while open() a new file.
+.......................................................................................
+2008-01-26 Lakshmipathi.G  <lakshmipathi.g@gmail.com> 
+	
+	* Release of giis 4.2
+
+		What's up doc?
+			
+			-> Bug fixed in searchupdate file.-Macro GIIS_DSIZE
+			-> Provides user option to choose directories.
+			-> Coding standards which is implemented by James Scott.Jr
+			(I think it's really hard to implement code standards on giis:-)..as until giis4.1 i never thought about it :-))
+			-> All  directories are protected under giis.(/bin,/etc,/lib,/bin,/sbin)
+			-> Screenshots are provided as user Guide for giis.
+			-> back to GNU/GPL 
+			-> giis documentaion prepared by James Scott.Jr
+
+To accomplish this, changes made to,
+
+=> searchnupdate.c     : avoid_dups() functions malfunctioning end-GIIS_DSIZE.device name is set before calling get_sample_data().
+			 and warning "Abnormal: Group Descriptor not found" is disabled.
+=> giis.h  	       : INODE_SIZE changed from sizeof(struct ext3_inode) to 128.and increased LEVEL_VALUE from 12 to 15
+=> main.c	       : before calling get_sample_data() device is reset.
+=> dir.c	       : New directories are added.
+
+.......................................................................................
+2007-04-07 Lakshmipathi.G  <lakshmipathi_g@rediffmail.com> <lakshmipathi.g@gmail.com>
+
+	* Release of giis 4.1
+
+		Hey ...What's new with 4.1 ?
+			
+			-> giis tries to recogize the disk file format.
+			-> Get last modified version/first version of deleted file.
+			-> updates newly created files very 20 mintues.
+			-> Get Sample data during giis -u.
+				ie. Get sample data for newly created files too.
+
+To accomplish this, changes made to,
+
+=>file.c		: show_data() is updated to recognize disk file format with the help of magic  signatures.giis analyser  	
+  			  file_repeated() is used to assist last and first version of a deleted file.
+
+=>searchnupdate.c	: check4samplefile_dups() - To update sample file during giis update.
+
+=>get_it_i_say.c 	: Make sure lastest or first copy of given file is recovered.
+
+...............................................................................................
+2007-01-01 Lakshmipathi.G  <lakshmipathi_g@rediffmail.com> 
+
+	* Release of giis 4.0
+		
+		What's new?
+			
+			- New option is provided to user to recover files by type
+			- giis-dump option is provided to dump data from older file location.
+
+To accomplish this changes made to,
+
+get_it_i_say.c 	  : get_it() - To read user input file type with help of search_format variable.
+main.c		  : New powerful options for recovery,get by file type and giis dump.
+file.c		  : show_data()-Displays data 
+
+.................................................................................................
+2006-10-09 Lakshmipathi.G  <lakshmipathi_g@rediffmail.com> 
+
+	* Release of giis 3.0
+	
+		What's new?
+				- Bug Fixed ;-)
+				 
+To accomplish this changes made to,
+
+
+file.c           :  read_sample_info_file()-To read Sample File data.
+	            Modification made to read_show_file().To compare disk data with giis_sample data
+searchnupdate.c  :  get_sample_data() implemented to store sample data of each files.
+
+get_it_i_say.c   : Implementation of overwritten variable.
+
+.................................................................................................
+	 
+
+2005-10-31 Lakshmipathi.G  <lakshmipathi_g@rediffmail.com> 
+
+	* Release of giis 2.1
+	
+		What's new?
+				
+				 -Automatic update.
+				 -Eliminate repeations.
+				 
+To accomplish this changes made to,
+
+* dir.c		: update_dir global variable is implemented for updation of directories.
+
+* main.c	: Command line options are implemented for giis.Thus user interaction
+		  is little better.	
+		  
+* searchnupdate.c : check4file_dups()- update files and update only files which are modified or created since last update. 
+		  Other files which are ignored.
+		  check4dir_dups()- This records any new directories that are with the  LEVEL_VALUE range.
+		  dir_depth()-Used to compute depth of newly found  directory  entry.
+		  With the help of these three procedures now we can update new directories and
+		  it's contents safely.
+		  
+* system files   : /etc/inittab  used for automatic updates.
+
+				 
+.................................................................................................
+2005-10-02 Lakshmipathi.G  <lakshmipathi_g@rediffmail.com>
+
+	* Release of giis 2.0
+	
+		What's new?
+				- Capable of supporting files more than 8.04MB.
+				- New and Effective storage technique.
+	
+To accomplish these Changes made to,
+	
+
+* giis.h         : Structure plus union of big_file_recover_info and  bigger_file_recover_info both are removed.
+		   Members such as sindirect_block_hole[],dindirect_block_hole[]
+		   are also removed from s_file_recover_info.since hole concept implemented 
+		   in giis1 to save space is no longer needed since we use new storage method
+		   which takes care of space utilization. 	 
+		   New members such as is_offset,id_offset introduced to keep record of 
+		   how many entries are in sind and dind file.
+		   Global variable s_offy and d_offy plays vital roles in recovery.
+		   These two keep track of offset in sind and dind files.
+
+	
+* dir.c		 : Modifications are made to the ways we store file or directory details.We
+		   get rid of the process of storing files and directory simultaneously and record only directory details first
+		   then record files details from above said directory with a help new global variable called install_file.
+		   Though storing file and directories provides high speedy opertion i believe
+		   Reliablity is much more important than speed. 		 	 	 
+	 	   
+* file.c	 : Since new storage method is implemented we can't read block by block
+		   with fixed size from sind and dind files.Since each record is of variable size.
+		   so use s_offy and d_offy along with s_offset and d_offset for  fragmented files.	
+	
+* searchnupdate.c: search4sequence12() and search4sequence13() both totally revamped  to introduce a new storage method for file     				   recovery.search4sequence13() now can get details of files upto 4GB size.avoid_dups() and call2remove() are 
+		   implemented to avoid repeation of entries during installtion.
+				  
+				 
+* get_it_i_say.c : Changes to get_it_i_say() for retrival is necessary  since new  storage technique is 		   implemented in searchnupdate. And error check for size is implemented.And we check                           whether the last data block during recovery matches original last data block of                              file.force_giis() is added to recover a given file.eye_on_gd() to  keep track of group                       numbers.
+
+................................................................................................,
+
+2005-08-28  Lakshmipathi.G  <lakshmipathi_g@rediffmail.com>
+
+	* Release of giis 1.0
+	
+			- Capable of supporting files upto 8.04MB.
+			
+		 	- Built-in Storage mgmt technique implemented for files slightly
+			  fragmented with concept of holes.
