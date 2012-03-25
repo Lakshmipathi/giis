@@ -3,7 +3,7 @@ clear
 #Installation - 0 for interactive - 1 use config file
 if [ $# -eq 1 ]
 then
-echo -e $"\n\t\t\tInstalling giis binary - giis-4.6"
+echo -e $"\n\t\t\tInstalling giis binary - giis-4.6.1"
 else
 echo "Wrong Usage"
 echo "Interactive installation : Usage: sh install_giis.sh 0"

@@ -1,3 +1,16 @@
+2012-03-25 Lakshmipathi.G <lakshmipathi.g@giis.co.in>
+	* Release of giis 4.6.1
+	What's up doc?
+			- Changes giis.h so that it builds with recent
+			kernels.removed dependency to <linux/ext3_fs.h> and this
+			file placed under src.
+			- Following Patch courtesy:  Pavel Alexeev
+			forum@hubbitus.com.ru.
+				a)kernel-source_and_destdir.patch
+				b)retcode.patch 
+				c)giis_4.6-pathes.patch
+
+..........................................................................................
 2009-06-21 Lakshmipathi.G <lakshmipathi.g@gmail.com>
 	* Release of giis 4.6
 	What's up doc?

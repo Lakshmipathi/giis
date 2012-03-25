@@ -184,8 +184,8 @@ int get_it ()
   if (no == 1)
   {
     printf ("\n\n giis process Completed...");
-    printf ("\n\t Recovered files   : /giis/got_it");
-    printf ("\n\t Unrecovered files : /giis/unrecovered");
+    printf ("\n\t Recovered files   : /usr/share/giis/got_it");
+    printf ("\n\t Unrecovered files : /usr/share/giis/unrecovered");
   }
   else
     printf ("\n\n\t\tNothing Recovered...");
@@ -309,8 +309,8 @@ int get_it_i_say ()
 {
   int i, fp, fdes, fd, num, hole, eof, count, tfp;
   unsigned long indirect_block, iblock[1024];
-  char name[75] = "/giis/got_it/";
-  char over[75] = "/giis/unrecovered/";
+  char name[75] = "/usr/share/giis/got_it/";
+  char over[75] = "/usr/share/giis/unrecovered/";
   extern char rere_filenames[200][150];
   extern int rere_count;
   extern unsigned long rere_inodes[1024];
@@ -756,8 +756,8 @@ int force_giis ()
           /* Fetch the last updated version of deleted file */
           get_it_i_say ();      /*Never mind about others go and get */
           close (fp);
-          printf ("\n\n\tRecovered       :/giis/got_it");
-          printf ("\n\tUnrecovered Files :/giis/unrecovered");
+          printf ("\n\n\tRecovered       :/usr/share/giis/got_it");
+          printf ("\n\tUnrecovered Files :/usr/share/giis/unrecovered");
           return 1;
         }
       }
@@ -765,8 +765,8 @@ int force_giis ()
       {                         /*Get First version */
         get_it_i_say ();        /*Never mind about others go and get */
         close (fp);
-        printf ("\n\n\tRecovered       :/giis/got_it");
-        printf ("\n\tUnrecovered Files :/giis/unrecovered");
+        printf ("\n\n\tRecovered       :/usr/share/giis/got_it");
+        printf ("\n\tUnrecovered Files :/usr/share/giis/unrecovered");
         return 1;
       }
 
@@ -796,7 +796,7 @@ int recover_restore ()
 {
 int i=0,j=0,retval=0,total=0,fp;
  extern union u_s_rere_info giis_r;
-char homepath[250]="/giis/got_it/";
+char homepath[250]="/usr/share/giis/got_it/";
 char *disp1="Recovered File Name \t\t Restore Directory\n";
 char *disp2=" \t\t\t";
 char *disp3="\n";
@@ -828,7 +828,7 @@ for(i=0;i<rere_count;i++){
 
 			strcat(strcat(giis_r.info.list_of_restorepaths[j],"/"),rere_filenames[i]);
 			memset(homepath,'\0',250);
-			strcat(homepath,"/giis/got_it/");
+			strcat(homepath,"/usr/share/giis/got_it/");
 
 			retval=link(strcat(homepath,rere_filenames[i]),giis_r.info.list_of_restorepaths[j]);
 			if(retval<0){
@@ -846,9 +846,9 @@ for(i=0;i<rere_count;i++){
 		
 		}
 }
-printf("\n See  /giis/restore_details.txt for Successfully restored files\n");
+printf("\n See  /usr/share/giis/restore_details.txt for Successfully restored files\n");
 close(fp);
-printf ("\n\n\tCheck /giis/got_it For all Recovered Files.\n");
+printf ("\n\n\tCheck /usr/share/giis/got_it For all Recovered Files.\n");
 return 1;
   
 }

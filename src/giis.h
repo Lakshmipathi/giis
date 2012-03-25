@@ -15,7 +15,7 @@
 #define _GNU_SOURCE
 
 #include <sys/types.h>
-#include <linux/ext3_fs.h> 
+#include "ext3_fs.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -43,17 +43,17 @@
 /* giis-4.6 LEVEL_VALUE from /etc/giis.conf will be used.
 #define LEVEL_VALUE  15	 //Supports upto 15 levels of sub-dir.(dir1/dir2/dir3.../dir15) 
 */
-#define INSTALL_DIR1   "/giis"
-#define INSTALL_DIR2   "/giis/sys"
-#define INSTALL_DIR3   "/giis/got_it"			/* Recovered files */
-#define INSTALL_DIR4	"/giis/unrecovered" 		/* Unrecovered Files List */
+#define INSTALL_DIR1   "/usr/share/giis"
+#define INSTALL_DIR2   "/usr/share/giis/sys"
+#define INSTALL_DIR3   "/usr/share/giis/got_it"			/* Recovered files */
+#define INSTALL_DIR4	"/usr/share/giis/unrecovered" 		/* Unrecovered Files List */
 
-#define DIR_INFO_FILE  "/giis/sys/dir"			/* Directory informations*/
-#define FILE_INFO_FILE "/giis/sys/file"			/* File informations */
-#define SIND_INFO_FILE "/giis/sys/sind"			/* single indirect blocks */
-#define DIND_INFO_FILE "/giis/sys/dind"			/* Double indirect blocks */
-#define SAMPLE_DATA_FILE "/giis/sys/sample"		/* Sample Data File */
-#define GIIS_RERE_FILE	"/giis/restore_details.txt"	/* File contains info about restore paths */
+#define DIR_INFO_FILE  "/usr/share/giis/sys/dir"			/* Directory informations*/
+#define FILE_INFO_FILE "/usr/share/giis/sys/file"			/* File informations */
+#define SIND_INFO_FILE "/usr/share/giis/sys/sind"			/* single indirect blocks */
+#define DIND_INFO_FILE "/usr/share/giis/sys/dind"			/* Double indirect blocks */
+#define SAMPLE_DATA_FILE "/usr/share/giis/sys/sample"		/* Sample Data File */
+#define GIIS_RERE_FILE	"/usr/share/giis/restore_details.txt"	/* File contains info about restore paths */
 #define GIIS_CONF_FILE  "/etc/giis.conf"		/* config file*/
 
 #define DEFAULT_OFFSET_OF_SUPER_BLOCK 1024 		/* Default offset */

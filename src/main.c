@@ -27,7 +27,7 @@ int main (int argc, char *argv[])
     {
       printf ("giis : invalid option \n");
       printf ("Type 'giis -h' for help \n");
-      return 1;
+      return -1;
     }
 
     /* process command line */
@@ -62,7 +62,7 @@ int main (int argc, char *argv[])
 
       if (strcmp (argv[1], "-h") == 0)
       {                         /* help */
-	printf ("giis Version 4.6,  21 June 2009");
+	printf ("giis Version 4.6.1,  25 March 2012");
 	printf ("\nBy Lakshmipathi.G (www.giis.co.in)");
 	printf("\nThis software comes with ABSOLUTELY NO WARRANTY.");
         printf ("\nUsage: giis [OPTION]\n");
@@ -80,13 +80,13 @@ int main (int argc, char *argv[])
         printf ("\n  -u\t\t Updates giis to reflect current status.");
         printf ("\n  -r\t\t Uninstalls giis.\n");
         printf ("\nPlease report bugs to http://groups.google.com/group/giis-users\n");
-        return 1;
+        return 0;
       }
       if ((ans != 444) && (ans < 0 || ans > 8))
       {
         printf ("giis : invalid option \n");
         printf ("Type 'giis -h' for help.\n");
-        return 1;
+        return -1;
       }
 
 
@@ -117,7 +117,7 @@ int main (int argc, char *argv[])
         printf ("\n\t\tgiis Not installed...\n");
         printf ("\t\t\t...So install giis and then try this..\n\n ");
         close (fp);
-        return 1;
+        return -1;
       }
       close (fp);
 
@@ -137,7 +137,7 @@ int main (int argc, char *argv[])
         return -1;
       }
 
-      return 1;
+      return 0;
     }
 
 
@@ -145,7 +145,7 @@ int main (int argc, char *argv[])
     {
       printf ("\n\t Quiting giis....");
       printf ("\n\n\t Bye...Bye...!!!\n\n");
-      return 1;
+      return 0;
     }
 
     if (ans == 5)
@@ -157,14 +157,14 @@ int main (int argc, char *argv[])
         printf ("Error Number:%d", errno);
         return -1;
       }
-      return 1;
+      return 0;
     }
 
     if (ans == 6)
     {
 
       system ("clear");
-      fp = open ("/giis/hai", 0);
+      fp = open ("/usr/share/giis/hai", 0);
       if (fp == -1)
       {
         perror ("");
@@ -184,13 +184,13 @@ int main (int argc, char *argv[])
         i = read (fp, &a, 1);
       }
       close (fp);
-      return 1;
+      return 0;
     }
     if (ans == 7)
     {
 
       system ("clear");
-      fp = open ("/giis/quotes", 0);
+      fp = open ("/usr/share/giis/quotes", 0);
       if (fp == -1)
       {
         perror ("");
@@ -218,7 +218,7 @@ int main (int argc, char *argv[])
         }
       }
       close (fp);
-      return 1;
+      return 0;
     }
 
 
@@ -235,9 +235,9 @@ int main (int argc, char *argv[])
     if (fp != -1)
     {
       printf ("\n\t\tgiis already installed in your system...\n");
-      printf ("\t\tTry giis -r or manually delete /giis to install freshly...\n ");
+      printf ("\t\tTry giis -r or manually delete /usr/share/giis to install freshly...\n ");
       close (fp);
-      return 2;
+      return -1;
     }
   }
 
@@ -249,7 +249,7 @@ int main (int argc, char *argv[])
       printf ("\n\t\tgiis Not installed...\n");
       printf ("\t\t\t...So install giis and then try this ;)\n ");
       close (fp);
-      return 1;
+      return -1;
     }
     close (fp);
   }
@@ -312,6 +312,7 @@ int main (int argc, char *argv[])
         printf("\n **giis panic ** root inode not detected..exiting\n");
 	exit(0);
       }
+	return 0;
   }
 
   /* Display File System Details */
@@ -333,7 +334,7 @@ int main (int argc, char *argv[])
       printf ("Error Number:%d", errno);
       return -1;
     }
-    return 1;
+    return 0;
   }
 
 
@@ -369,7 +370,7 @@ int main (int argc, char *argv[])
   if (ans == 2)
   {
 
-  printf ("\n\n\t *** Note : 'Recover and Restore Files' option will place  recovered files into it's original\ parent directory and creates  link  under /giis/got_it directory.If the original directory path not\ exists,then those files can be found under /giis/got_it.See /giis/restore_details.txt for restored files.");
+  printf ("\n\n\t *** Note : 'Recover and Restore Files' option will place  recovered files into it's original\ parent directory and creates  link  under /usr/share/giis/got_it directory.If the original directory path not\ exists,then those files can be found under /usr/share/giis/got_it.See /usr/share/giis/restore_details.txt for restored files.");
   printf("\n\n\t==>Recover and Restore  Files : Press 1(Recommended) Else Press 0 : ");
 	
   scanf("%d",&rere);
@@ -440,7 +441,7 @@ int main (int argc, char *argv[])
     else
     {
       printf ("\n\n\t\tPlease Enter correct Choice");
-      return 1;
+      return -1;
     }
 
     install = 0;
@@ -450,5 +451,5 @@ int main (int argc, char *argv[])
    if(rere==1)
 	recover_restore();
   }
-  return 1;
+  return 0;
 }

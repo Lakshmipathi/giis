@@ -76,26 +76,26 @@ int remove_giis ()
 
 
 
-  i = unlink ("/giis/hai");
+  i = unlink ("/usr/share/giis/hai");
   if (i == 0)
-    printf ("\n\t/giis/hai Removed");
+    printf ("\n\t/usr/share/giis/hai Removed");
   else
-    printf ("\n\t/giis/hai not Deleted...");
+    printf ("\n\t/usr/share/giis/hai not Deleted...");
 
 
-  i = unlink ("/giis/quotes");
+  i = unlink ("/usr/share/giis/quotes");
   if (i == 0)
-    printf ("\n\t/giis/quotes Removed");
+    printf ("\n\t/usr/share/giis/quotes Removed");
   else
-    printf ("\n\t/giis/quotes not Deleted...");
+    printf ("\n\t/usr/share/giis/quotes not Deleted...");
 
 
 
-  i = unlink ("/giis/restore_details.txt");
+  i = unlink ("/usr/share/giis/restore_details.txt");
   if (i == 0)
-    printf ("\n\t/giis/restore_details.txt Removed");
+    printf ("\n\t/usr/share/giis/restore_details.txt Removed");
   else
-    printf ("\n\t/giis/restore_details.txt not Deleted...");
+    printf ("\n\t/usr/share/giis/restore_details.txt not Deleted...");
 
   rmdir (INSTALL_DIR3);
   rmdir (INSTALL_DIR2);
