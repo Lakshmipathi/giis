@@ -192,6 +192,7 @@ struct ext3_group_desc
 #define EXT3_OTHER_FLMASK (EXT3_NODUMP_FL | EXT3_NOATIME_FL)
 
 /* Mask out flags that are inappropriate for the given type of inode. */
+typedef unsigned short          umode_t;
 static inline __u32 ext3_mask_flags(umode_t mode, __u32 flags)
 {
 	if (S_ISDIR(mode))
